@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <process id="MultiTaskWithMail" name="带邮件功能的会签流程" isExecutable="true">
+    <documentation>增加了邮件监听事件</documentation>
+    <startEvent id="startevent1" name="Start"></startEvent>
+    <userTask id="Submit" name="Submit" activiti:assignee="${person}"></userTask>
+    <userTask id="ApproveTask" name="Approve" activiti:assignee="${approver}">
+      <extensionElements>
+        <activiti:taskListener event="create" delegateExpression="${vacationRuleListener}"></activiti:taskListener>
+        <activiti:taskListener event="create" delegateExpression="${taskMailListener}">
+          <activiti:field name="type">
+            <activiti:string><![CDATA[approve]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${approverList}" activiti:elementVariable="approver">
+        <completionCondition>${nrOfCompletedInstances == nrOfInstances || result == "N"}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <sequenceFlow id="flow1" sourceRef="startevent1" targetRef="Submit"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="Submit" targetRef="ApproveTask"></sequenceFlow>
+    <sequenceFlow id="flow3" sourceRef="ApproveTask" targetRef="exclusivegateway1"></sequenceFlow>
+    <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow4" sourceRef="exclusivegateway1" targetRef="endevent1">
+      <extensionElements>
+        <activiti:executionListener event="take" expression="${mailListener}">
+          <activiti:field name="type">
+            <activiti:string><![CDATA[approved]]></activiti:string>
+          </activiti:field>
+        </activiti:executionListener>
+      </extensionElements>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${result == "Y"}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow5" sourceRef="exclusivegateway1" targetRef="Submit">
+      <extensionElements>
+        <activiti:executionListener event="take" delegateExpression="${mailListener}">
+          <activiti:field name="type">
+            <activiti:string><![CDATA[revert]]></activiti:string>
+          </activiti:field>
+        </activiti:executionListener>
+      </extensionElements>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${result == "N"}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_MultiTaskWithMail">
+    <bpmndi:BPMNPlane bpmnElement="MultiTaskWithMail" id="BPMNPlane_MultiTaskWithMail">
+      <bpmndi:BPMNShape bpmnElement="startevent1" id="BPMNShape_startevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="190.0" y="200.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="Submit" id="BPMNShape_Submit">
+        <omgdc:Bounds height="55.0" width="105.0" x="310.0" y="190.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="ApproveTask" id="BPMNShape_ApproveTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="510.0" y="190.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="770.0" y="204.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway1" id="BPMNShape_exclusivegateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="680.0" y="197.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="225.0" y="217.0"></omgdi:waypoint>
+        <omgdi:waypoint x="310.0" y="217.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="415.0" y="217.0"></omgdi:waypoint>
+        <omgdi:waypoint x="510.0" y="217.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="615.0" y="217.0"></omgdi:waypoint>
+        <omgdi:waypoint x="680.0" y="217.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+        <omgdi:waypoint x="720.0" y="217.0"></omgdi:waypoint>
+        <omgdi:waypoint x="770.0" y="221.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+        <omgdi:waypoint x="700.0" y="197.0"></omgdi:waypoint>
+        <omgdi:waypoint x="699.0" y="123.0"></omgdi:waypoint>
+        <omgdi:waypoint x="362.0" y="123.0"></omgdi:waypoint>
+        <omgdi:waypoint x="362.0" y="190.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
