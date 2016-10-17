@@ -8,4 +8,5 @@ public class TestTool {
 	public static <T> T getBean(String beanName, Class<T> cls){
 		 return context.getBean(cls);
 	}
+	//test
 }
